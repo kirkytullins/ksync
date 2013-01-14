@@ -1,0 +1,31 @@
+#!/usr/bin/env jruby
+
+require 'optparse'
+require 'ksync'
+
+def message(o)
+    puts o
+    exit
+end
+
+options = {}
+options[:real_copy] = true
+options[:use_hash] = false
+options[:verbose] = 0
+o = OptionParser.new
+o.banner = "Usage: #{$0} [options] source_folder destination_folder"
+o.on('-d', '--dry_run', 'dry run (default : do the real copy - no dry run)') { |s| options[:real_copy] = false }
+o.on('-v', '--verbosity=value', 'The level of verbosity (1..3) (default = 0 : very silent)') { |s| options[:verbose] = s.to_i }
+o.on('-u', '--use_hash', 'use hash calculation (default : dont use hash)') { |s| options[:use_hash] = true }
+o.on('-f', '--force_dest_hash', 'force recalculation of files hash in destination folder') { |s| options[:force_dest_hash] = true }
+o.on('-h', '--help', 'Display this message') { message(o) }
+
+o.parse!
+
+if !ARGV[0] || !ARGV[1]
+    message(o)
+else
+    options[:src] =  ARGV[0]
+    options[:dst] =  ARGV[1]
+    KSync::Base.new(options).do_sync
+end
