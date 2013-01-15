@@ -11,20 +11,24 @@ Turn.config.format = :outline
 class KSyncTest < MiniTest::Unit::TestCase
     include KSync
     def setup
-    begin
+    begin            
       @src_path = File.join(File.dirname(__FILE__), "src/folder1/folder2")
       @dst_path = File.join(File.dirname(__FILE__), "src")
       create_tree("src")
       @opts = {}
       @opts = {:src => File.join(File.dirname(__FILE__), "src"), :dst => File.join(File.dirname(__FILE__), "dst")}
+      
+      FileUtils.rm_rf  @opts[:dst] rescue nil
+      
     rescue
       puts "error trying to do the setup :#{$!}"
     end
     end
 
   def teardown
-   FileUtils.rm_rf  @opts[:src]
-   FileUtils.rm_rf  @opts[:dst]
+   FileUtils.rm_rf  @opts[:src] rescue nil
+   FileUtils.rm_rf  @opts[:dst] rescue nil
+   FileUtils.rm File.join(@opts[:dst], KSync::Base::KSYNC_FILES_HASH) rescue nil
   end
 
   # support methods
@@ -63,7 +67,7 @@ class KSyncTest < MiniTest::Unit::TestCase
   end
 
   # tests
-  def test_new_tree
+  def test_new_tree    
     assert_equal(File.exists?(@opts[:dst]), false, "initial conditions not correct")
     KSync::Base.new(@opts).do_sync
     assert_equal(compare_folders(@opts[:src], @opts[:dst]), true)
@@ -94,7 +98,7 @@ class KSyncTest < MiniTest::Unit::TestCase
   end
 
   def test_less_folders_in_source
-    FileUtils.rm_rf "#{@opts[:src]}/folder_empty"
+    FileUtils.rm_rf "#{@opts[:src]}/folder_empty" rescue nil
     assert_equal(KSync::Base.new(@opts).do_sync, true)
     assert_equal(compare_folders(@opts[:src], @opts[:dst]), true)
   end
@@ -113,7 +117,7 @@ class KSyncTest < MiniTest::Unit::TestCase
     assert_equal(KSync::Base.new(@opts2).do_sync, false)
   end
 
-  def test_dry_run
+  def test_dry_run    
     assert_equal(File.exists?(@opts[:dst]), false, "initial conditions not correct")
     @opts[:real_copy] = false
     @opts[:verbose] = 3
@@ -122,14 +126,18 @@ class KSyncTest < MiniTest::Unit::TestCase
     assert_equal(File.exists?(@opts[:dst]), false)
   end
 
-  def test_use_existing_files_hash
+  def test_use_existing_files_hash   
     assert_equal(File.exists?(@opts[:dst]), false, "initial conditions not correct")
     k = KSync::Base.new(@opts)
     k.do_sync
     assert_equal(compare_folders(@opts[:src], @opts[:dst]), true)
-    saved_hash = File.open(File.join(@opts[:dst], KSync::Base::KSYNC_FILES_HASH),'r').read
+    fi = File.open(File.join(@opts[:dst], KSync::Base::KSYNC_FILES_HASH),'r')
+    saved_hash = fi.read
+    assert_equal(saved_hash != nil, true)
+    fi.close
     teardown
     setup
+    FileUtils.mkdir_p @opts[:dst]
     File.open(File.join(@opts[:dst], KSync::Base::KSYNC_FILES_HASH),'w'){|f| f.write saved_hash}
     assert_equal(KSync::Base.new(@opts).do_sync, false)
     FileUtils.rm File.join(@opts[:dst], KSync::Base::KSYNC_FILES_HASH) rescue nil
