@@ -28,7 +28,6 @@ end
 
 
 
-#TestAspect.apply KSync, :method => [:do_copy, :do_sync, :create_hash]
 m_h={}
 TestAspect.apply(KSync, :mh => m_h, :logit => false)
 
