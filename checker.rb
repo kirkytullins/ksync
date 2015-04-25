@@ -1,72 +1,27 @@
 class Checker
-	attr_reader :mx, :my, :sections_hash, :route_hash
-	def initialize x, y
-		@mx = x
-		@my = y
-		@sections_hash = {}
-		@route_hash = {}
-		@cur_route = []
-		@found = true 
-	end
+	attr_reader :sp, :perms_h
+	def initialize x,y
+		@sp = [(0..x-1).map{|x|x},(0..y-1).map{|x|x}].flatten.permutation(2).map(&:join).uniq
+	end	
 
-	def allowed? x, y 
-		return false if x < 0 || y < 0 || x > @mx-1 || y > @my-1
-		return true  
-	end 
-
-	def create_sections 
-  	@sections = []
-		(0..@mx-1).each do |x|
-			(0..@my-1).each do |y|
-				@sections << [x,y]
-			end
+	def get_permutations p_list
+		@perms_h = {}
+		p_list.each do |tuple|
+			@perms_h[tuple] = sp.permutation(tuple).map(&:join).uniq.size
 		end
 	end
 
-	def get_all_sections
-		create_sections
-		(0..@mx-1).each do |x|
-			(0..@my-1).each do |y|
-				@sections_hash[[x,y]] = @sections.clone
-				@sections_hash[[x,y]].delete [x,y]
-			end
-		end
-	end
-	
-	def add_route xy
-		@cur_route << xy
-		if @route_hash[@cur_route] #exists 
-			@cur_route.pop
-			@found = false
-		else
-			@route_hash[@cur_route] = @cur_route
-			@found = true 
-		end	
-	end
-
-	def explore xy
-		while @found
-			(0..@mx-1).each do |x|
-				(0..@my-1).each do |y|
-					add_route [x,y] 
-					explore [x,y]  
-				end
-			end		
-		end
-	end
 end
-
-
 
 # main script
-ch = Checker.new 3,3 
-ch.get_all_sections
-ch.sections_hash.each do |k, v|
-	puts "=> #{k}"
-	puts "\t#{v}"
-end
-ch.explore [0,0]
-ch.route_hash.each do |k,v|
-	puts k
-	puts "\t#{v}"
+
+x,y = eval ARGV[0]
+
+perm=eval ARGV[1]
+
+puts ""
+ch = Checker.new x,y
+ch.get_permutations perm
+ch.perms_h.each do |k,v|
+	puts "permutations for (#{k} => #{v}	"
 end
