@@ -36,13 +36,17 @@ the method do_sync will return false if there were no changes, true otherwise
 
 To backup folder c:/dev to c:/dev_backup forcing hash calculation (hash calculation will only be used if the files have
 the same size and modification date):
+
 ```
-  ksync --use_hash c:/dev c:/dev_backup
+ksync --use_hash c:/dev c:/dev_backup
 ```
+
 or
+
 ```
-  ksync -u c:/dev c:/dev_backup
+ksync -u c:/dev c:/dev_backup
 ```
+
 ## Tests
 To run the tests from the gem folder:
 
